@@ -1,0 +1,9 @@
+*.xlsx
+*.xls
+runs/
+**/runs/
+__pycache__/
+*.pyc
+.env
+*.csv
+dryrun*.md
