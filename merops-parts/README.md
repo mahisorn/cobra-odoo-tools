@@ -9,9 +9,23 @@ This tool syncs a Merops part list (the "Flatpack BOM" xlsx) into cdrone Odoo 20
 - **Products are shared:** `company_id` is left empty. COBRA COMPOSITE STRUCTURES owns them, but every company can use them.
 - **Not handled yet:** prices, vendors, and kit products/BoMs. Those decisions come later.
 - **Units:** `Units` by default. `config.json` sets `uom_overrides`: ml for L00139-01 and P00460-01, m for P04003-01 and P03800-01.
-- **Property values** (Weight (g), Dimensions (mm), Volume (mm3), Material, Process, Thickness (mm), Blank size (mm), Base PN, Revision):
-  - The tool writes them only when the definitions already exist on the category.
-  - It never creates those definitions; that is a separate config change that Chang must approve.
+- **Property values** go into category properties on `Goods / Merops / RJ2` (id 63). The definitions were created on 2026-11-24 with Chang's approval:
+
+  | Property | Name | Type |
+  |---|---|---|
+  | Weight (g) | `weight_g` | float |
+  | Dimensions (mm) | `dimensions_mm` | char |
+  | Volume (mm3) | `volume_mm3` | float |
+  | Material | `material` | char |
+  | Process | `process` | char |
+  | Thickness (mm) | `thickness_mm` | float |
+  | Blank size (mm) | `blank_size_mm` | char |
+  | Base PN | `base_pn` | char |
+  | Revision | `revision` | char |
+
+  - The tool matches definitions by their label and writes `categ_id` in the same write, because Odoo drops property values otherwise.
+  - The tool never creates or changes definitions.
+- **Standard weight:** kg = g/1000, rounded to 2 dp. Parts under 5 g round to 0 and get no weight. Volume is left empty.
 - **Legacy products:** existing Cobra-code products are mapped in `config.json` → `legacy_products`.
   - `adopt` rewrites the product's default_code, name and category.
   - `hold` changes nothing.
@@ -29,7 +43,8 @@ export COBRA_DRONE_ODOO_API_KEY=...
 # 1. Dry run (read-only). Writes runs/<timestamp>/dryrun.md, dryrun.csv and plan.json
 python3 sync_parts.py dry-run CURRENT.xlsx --older OLD_WITH_IMAGES.xlsx --runs-dir RUNS
 # 2. After Chang approves that run:
-python3 sync_parts.py apply CURRENT.xlsx --older OLD_WITH_IMAGES.xlsx --plan RUNS/<ts>/plan.json
+python3 sync_parts.py apply CURRENT.xlsx --older OLD_WITH_IMAGES.xlsx --plan RUNS/<ts>/plan.json [--only P03010-01]
+# --only applies a one-product test. Run a new dry run before applying the rest.
 ```
 
 ## Safety checks in apply

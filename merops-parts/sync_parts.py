@@ -248,6 +248,7 @@ def load_inputs(bom_path, extra_paths, cfg):
 
 # ---------------------------------------------------------------- live state + diff
 def img_same(b64_existing, new_bytes):
+    if isinstance(b64_existing, dict): b64_existing = b64_existing.get("content")   # Odoo 20 RPC returns {content, size}
     if not b64_existing: return False
     old = base64.b64decode(b64_existing)
     if hashlib.sha256(old).digest() == hashlib.sha256(new_bytes).digest(): return True
@@ -269,7 +270,8 @@ def read_state(odoo, parts, cfg):
     codes = sorted({p["code"] for p in parts})
     bases = sorted({p["code"].split("-")[0] for p in parts})
     legacy = sorted({v["default_code"] for v in cfg["legacy_products"].values()})
-    flds = ["default_code", "name", "uom_id", "categ_id", "company_id", "active", "write_date", "description", "type", "is_storable"]
+    flds = ["default_code", "name", "uom_id", "categ_id", "company_id", "active", "write_date", "description", "type", "is_storable",
+            "weight", "product_properties"]
     ctx = {"active_test": False}
     tmpls = odoo("product.template", "search_read",
                  ["|", "|", ["default_code", "in", codes + legacy], ["default_code", "=like", "P0%"], ["default_code", "in", bases]],
@@ -309,8 +311,12 @@ def build_plan(parts, st, cfg):
         if p["qty"] in (None, 0): notes.append(f"qty {p['qty']!r}")
         if uom not in st["uoms"]: notes.append(f"UoM '{uom}' missing in Odoo")
         elif not st["uoms"][uom]["active"]: notes.append(f"UoM '{uom}' archived")
+        weight_kg = round(props["Weight (g)"] / 1000.0, 2) if "Weight (g)" in props else None   # Odoo Stock Weight = 2 dp (rounding accepted)
+        prop_vals = {prop_defs[k]: v for k, v in props.items() if k in prop_defs}
         vals = dict(name=p["name"], default_code=code, categ_id=cat["id"] if cat else None, uom=uom, company_id=False,
                     type="consu", is_storable=True, sale_ok=True, purchase_ok=True, description=description_for(p))
+        if weight_kg: vals["weight"] = weight_kg
+        if prop_vals: vals["product_properties"] = prop_vals
         base = dict(row=p["row"], code=code, name=p["name"], qty=p["qty"], uom=uom, category=cfg["category"], company="shared",
                     image="yes" if p["img"] else "no", image_sha=(p["img"] or {}).get("sha256", ""), image_src=(p["img"] or {}).get("member", ""),
                     properties=props, properties_pending=pending, notes="; ".join(notes), product_id="", changes="", write_date="")
@@ -343,6 +349,11 @@ def build_plan(parts, st, cfg):
             ch.append(f"uom {m2o(t['uom_id'])} -> {uom}"); wv["uom_id"] = uom
         if t["company_id"]: ch.append("company -> shared"); wv["company_id"] = False
         if not t["active"]: ch.append("reactivate"); wv["active"] = True
+        if weight_kg and abs((t.get("weight") or 0) - weight_kg) > 1e-9: ch.append(f"weight {t.get('weight') or 0} -> {weight_kg} kg"); wv["weight"] = weight_kg
+        have = {d["name"]: d.get("value") for d in (t.get("product_properties") or []) if isinstance(d, dict)} if m2o(t["categ_id"]) == cfg["category"] else {}
+        pdiff = {k: v for k, v in prop_vals.items() if not (have.get(k) == v or (isinstance(v, float) and isinstance(have.get(k), (int, float)) and abs(have[k] - v) < 1e-6))}
+        if pdiff: ch.append("properties " + ",".join(sorted(pdiff))); wv["product_properties"] = prop_vals
+        if "product_properties" in wv or "categ_id" in wv: wv["categ_id"] = cat["id"]   # properties need categ in the same write
         if html_text(t["description"]) != vals["description"] and not adopt or (adopt and not html_text(t["description"])):
             if html_text(t["description"]) != vals["description"]: ch.append("description"); wv["description"] = vals["description"]
         out.append(dict(base, action="update" if ch or p["img"] else "unchanged", product_id=t["id"], write_date=t["write_date"],
@@ -411,7 +422,7 @@ def write_reports(run_dir, inputs, cur, extras, out, issues, removed, st, cfg):
     L += ["", "## File issues", ""] + [f"- {i}" for i in issues] + [f"- {r}" for r in removed] + ([] if issues or removed else ["- none"])
     errs = [o for o in out if o["action"] in ("error", "hold", "skip")]
     L += ["", "## Errors / holds / skips", ""] + [f"- {o['action']} {o['code']} {o['name']}: {o['changes']}" for o in errs] + ([] if errs else ["- none"])
-    L += ["", "## All products", "", "| action | code | name | uom | image | changes | notes | properties (pending) |", "|---|---|---|---|---|---|---|---|"]
+    L += ["", "## All products", "", "| action | code | name | uom | image | changes | notes | properties |", "|---|---|---|---|---|---|---|---|"]
     for o in out:
         pr = "; ".join(f"{k}={v}" for k, v in o["properties"].items())
         L.append(f"| {o['action']} | {o['code']} | {o['name']} | {o['uom']} | {o['image']} | {o['changes']} | {o['notes']} | {pr} |")
@@ -452,12 +463,11 @@ def apply(args, cfg):
     with open(ids_path, "a") as idsf:
         for o in out:
             if o["action"] not in ("create", "update"): continue
+            if args.only and o["code"] not in args.only: continue
             p = pbc[o["code"]]
-            props = {defs[k]: v for k, v in o["properties"].items() if k in defs}
             if o["action"] == "create":
                 v = dict(o["_vals"]); v["uom_id"] = uoms[v.pop("uom")]
                 if p["img"]: v["image_1920"] = base64.b64encode(p["img"]["bytes"]).decode()
-                if props: v["product_properties"] = props
                 if odoo("product.template", "search_count", [["default_code", "=", o["code"]]], context={"active_test": False}):
                     log(f"skip create {o['code']}: appeared meanwhile"); continue
                 new = odoo("product.template", "create", [v])
@@ -468,7 +478,6 @@ def apply(args, cfg):
                 v = dict(o["_write"])
                 if "uom_id" in v: v["uom_id"] = uoms[v["uom_id"]]
                 if o.get("_img_write"): v["image_1920"] = base64.b64encode(p["img"]["bytes"]).decode()
-                if props: v["product_properties"] = props
                 if v:
                     odoo("product.template", "write", [o["product_id"]], v)
                     idsf.write(json.dumps({"action": "update", "code": o["code"], "tmpl_id": o["product_id"], "changes": o["changes"]}) + "\n")
@@ -484,6 +493,7 @@ def main():
     ap.add_argument("--older", action="append", help="older BOM xlsx used only for in-cell images / dimensions / weight (same full code)")
     ap.add_argument("--config", default=os.path.join(HERE, "config.json"))
     ap.add_argument("--plan", help="approved plan.json (apply)")
+    ap.add_argument("--only", action="append", help="apply: limit to these codes (one-product test); re-run dry-run afterwards")
     ap.add_argument("--runs-dir", default=os.environ.get("SYNC_RUNS_DIR", "runs"))
     args = ap.parse_args()
     cfg = json.load(open(args.config))
