@@ -30,6 +30,13 @@ This tool syncs a Merops part list (the "Flatpack BOM" xlsx) into cdrone Odoo 20
   - `adopt` rewrites the product's default_code, name and category.
   - `hold` changes nothing.
 
+## config.json overrides
+These settings survive a re-sync:
+- `include_from_older`: codes to take from an `--older` file when the current file lacks them. P03016-01 was deleted from the online sheet by mistake.
+- `name_overrides`: a fixed product name per code, e.g. P03751-01 → "Bracket, Optical Array".
+- `uom_overrides`: units other than Units. P03800-01 foam strip is counted in pieces, so it stays on Units.
+- `legacy_products`: older Cobra-code products adopted under the Merops code (12201047/48/49 → P03042-04 / P03043-04 / P03046-03).
+
 ## Inputs
 - **Current BOM file:** the source of truth for which parts exist and for names and materials.
   - The tool finds the sheet by its `Part No. latest` header.

@@ -236,8 +236,18 @@ def load_inputs(bom_path, extra_paths, cfg):
             img = dict(source=os.path.basename(src_img[0]), member=src_img[1], sha256=hashlib.sha256(b).hexdigest(), bytes=b)
         rec.update(code=code, name=clean(r.get("name")), qty=num(r.get("qty")), img=img, dup=seen[code] > 1)
         parts.append(rec)
-    removed = []
     cur_codes = {p["code"] for p in parts}
+    for code, why in (cfg.get("include_from_older") or {}).items():   # rows deliberately taken from an older file
+        if code in cur_codes: continue
+        hit = by_code_extra.get(code)
+        if not hit:
+            issues.append(f"{code}: listed in include_from_older but not found in any older file"); continue
+        d, er = hit[0]
+        b = d["wb"].media(er["image"]) if er.get("image") else None
+        img = dict(source=os.path.basename(d["path"]), member=er["image"], sha256=hashlib.sha256(b).hexdigest(), bytes=b) if b else None
+        rec = dict(er, code=code, name=clean(er.get("name")), qty=num(er.get("qty")), img=img, dup=False, _from_older=why)
+        parts.append(rec); cur_codes.add(code)
+    removed = []
     for d in extras:
         for r in d["rows"]:
             c = clean(r.get("code"))
@@ -308,6 +318,9 @@ def build_plan(parts, st, cfg):
         if clean(p.get("remark2")).find("NOT TO INCLUDE") >= 0: notes.append("Merops: not included in the 2,000 flatpack order")
         if vendor_pn: notes.append(f"vendor PN {vendor_pn}")
         if p.get("_filled"): notes.append("from older file: " + ",".join(p["_filled"]))
+        if p.get("_from_older"): notes.append("row from older file: " + p["_from_older"])
+        if code in (cfg.get("name_overrides") or {}):
+            notes.append(f"name override (file: '{p['name']}')"); p = dict(p, name=cfg["name_overrides"][code])
         if p["qty"] in (None, 0): notes.append(f"qty {p['qty']!r}")
         if uom not in st["uoms"]: notes.append(f"UoM '{uom}' missing in Odoo")
         elif not st["uoms"][uom]["active"]: notes.append(f"UoM '{uom}' archived")
