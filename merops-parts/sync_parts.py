@@ -191,6 +191,14 @@ def properties_for(rec, code):
     return p
 
 
+def tracking_for(rec, code, uom, cfg):
+    """Serial/lot per Chang t112u: category default, per-part override; non-Units (m, ml) can only be lot."""
+    t = cfg.get("tracking")
+    if not t: return None
+    v = t.get("overrides", {}).get(code) or t.get("by_category", {}).get(clean(rec.get("category"))) or t.get("default")
+    return "lot" if v == "serial" and uom != cfg["default_uom"] else v
+
+
 def description_for(rec):
     bits = []
     for k, lab in [("remark", "BOM change remark"), ("remark2", "Remark"), ("group", "Group"), ("category", "Merops category")]:
@@ -281,7 +289,7 @@ def read_state(odoo, parts, cfg):
     bases = sorted({p["code"].split("-")[0] for p in parts})
     legacy = sorted({v["default_code"] for v in cfg["legacy_products"].values()})
     flds = ["default_code", "name", "uom_id", "categ_id", "company_id", "active", "write_date", "description", "type", "is_storable",
-            "weight", "product_properties"]
+            "weight", "product_properties", "tracking"]
     ctx = {"active_test": False}
     tmpls = odoo("product.template", "search_read",
                  ["|", "|", ["default_code", "in", codes + legacy], ["default_code", "=like", "P0%"], ["default_code", "in", bases]],
@@ -329,8 +337,10 @@ def build_plan(parts, st, cfg):
         vals = dict(name=p["name"], default_code=code, categ_id=cat["id"] if cat else None, uom=uom, company_id=False,
                     type="consu", is_storable=True, sale_ok=True, purchase_ok=True, description=description_for(p))
         if weight_kg: vals["weight"] = weight_kg
+        trk = tracking_for(p, code, uom, cfg)
+        if trk and (cfg.get("tracking") or {}).get("apply"): vals["tracking"] = trk
         if prop_vals: vals["product_properties"] = prop_vals
-        base = dict(row=p["row"], code=code, name=p["name"], qty=p["qty"], uom=uom, category=cfg["category"], company="shared",
+        base = dict(row=p["row"], code=code, name=p["name"], qty=p["qty"], uom=uom, tracking=trk or "", category=cfg["category"], company="shared",
                     image="yes" if p["img"] else "no", image_sha=(p["img"] or {}).get("sha256", ""), image_src=(p["img"] or {}).get("member", ""),
                     properties=props, properties_pending=pending, notes="; ".join(notes), product_id="", changes="", write_date="")
         if p["dup"]: out.append(dict(base, action="error", changes="duplicate part number in file")); continue
@@ -365,6 +375,9 @@ def build_plan(parts, st, cfg):
         if weight_kg and abs((t.get("weight") or 0) - weight_kg) > 1e-9: ch.append(f"weight {t.get('weight') or 0} -> {weight_kg} kg"); wv["weight"] = weight_kg
         have = {d["name"]: d.get("value") for d in (t.get("product_properties") or []) if isinstance(d, dict)} if m2o(t["categ_id"]) == cfg["category"] else {}
         pdiff = {k: v for k, v in prop_vals.items() if not (have.get(k) == v or (isinstance(v, float) and isinstance(have.get(k), (int, float)) and abs(have[k] - v) < 1e-6))}
+        if trk and (t.get("tracking") or "none") != trk:
+            if (cfg.get("tracking") or {}).get("apply"): ch.append(f"tracking {t.get('tracking') or 'none'} -> {trk}"); wv["tracking"] = trk
+            else: notes.append(f"tracking {t.get('tracking') or 'none'} -> {trk} (proposed, tracking.apply=false)")
         if pdiff: ch.append("properties " + ",".join(sorted(pdiff))); wv["product_properties"] = prop_vals
         if "product_properties" in wv or "categ_id" in wv: wv["categ_id"] = cat["id"]   # properties need categ in the same write
         if html_text(t["description"]) != vals["description"] and not adopt or (adopt and not html_text(t["description"])):
@@ -381,7 +394,7 @@ def resolve_images(odoo, out):
 
 
 # ---------------------------------------------------------------- reports
-CSV_COLS = ["action", "code", "name", "qty", "uom", "category", "company", "image", "changes", "notes",
+CSV_COLS = ["action", "code", "name", "qty", "uom", "tracking", "category", "company", "image", "changes", "notes",
             "properties_pending", "properties", "product_id", "row"]
 
 
@@ -432,6 +445,12 @@ def write_reports(run_dir, inputs, cur, extras, out, issues, removed, st, cfg):
     for o in out:
         if o["notes"] and (o["code"] in cfg["flags"] or o["uom"] != cfg["default_uom"] or "not included" in o["notes"] or "qty" in o["notes"]):
             L.append(f"- {o['code']} {o['name']} [{o['qty']} {o['uom']}]: {o['notes']}")
+    if cfg.get("tracking"):
+        tc = Counter(o.get("tracking") or "none" for o in out if o["action"] not in ("skip", "error"))
+        diffs = [o for o in out if "tracking " in (o["changes"] + " " + o["notes"])]
+        L += ["", f"## Tracking (apply={'on' if cfg['tracking'].get('apply') else 'off: proposal only'})", "",
+              "Target: " + ", ".join(f"{k} {v}" for k, v in sorted(tc.items())) + f". Products whose tracking would change: {len(diffs)}."]
+        L += [f"- {o['code']} {o['name']} (qty {o['qty']} {o['uom']}): " + next(x for x in (o["changes"] + "; " + o["notes"]).split("; ") if x.startswith("tracking ")) for o in diffs if (o["qty"] or 0) >= 4 or o["uom"] != cfg["default_uom"]]
     L += ["", "## File issues", ""] + [f"- {i}" for i in issues] + [f"- {r}" for r in removed] + ([] if issues or removed else ["- none"])
     errs = [o for o in out if o["action"] in ("error", "hold", "skip")]
     L += ["", "## Errors / holds / skips", ""] + [f"- {o['action']} {o['code']} {o['name']}: {o['changes']}" for o in errs] + ([] if errs else ["- none"])

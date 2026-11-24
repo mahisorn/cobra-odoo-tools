@@ -46,5 +46,28 @@
   },
   "name_overrides": {
     "P03751-01": "Bracket, Optical Array"
+  },
+  "tracking": {
+    "_note": "Chang t112u: most parts serial; consumables lot. Proposal, not applied until approved. Non-Units products are forced to lot.",
+    "default": "lot",
+    "by_category": {
+      "3D Printed Plastic": "serial",
+      "Composite": "serial",
+      "Fabricated Metal": "serial",
+      "Wood": "serial",
+      "Fuel-Tank": "serial",
+      "Airbag and Parachute": "serial",
+      "Fuel-Misc": "serial",
+      "Part": "lot",
+      "Consumable": "lot",
+      "Rope": "lot",
+      "Foam and Sponge": "lot"
+    },
+    "overrides": {
+      "P03760-01": "lot",
+      "P03793-01": "lot",
+      "P03982-01": "lot"
+    },
+    "apply": false
   }
 }
