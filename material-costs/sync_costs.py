@@ -202,7 +202,7 @@ def write_reports(run_dir, path, sha, sheet, rows, out, st, companies):
     if need_cat and ROOT_CATEG not in st["categs"]:
         need_cat = [ROOT_CATEG] + need_cat
     errs = [o for o in out if o["action"] == "error"]
-    plan = dict(file=os.path.basename(path), sha256=sha, sheet=sheet, rows=len(rows), companies=companies,
+    plan = dict(file=os.path.basename(path), sha256=sha, sheet=sheet, root_categ=ROOT_CATEG, rows=len(rows), companies=companies,
                 created_at=dt.datetime.now().isoformat(timespec="seconds"), counts=dict(cnt),
                 prereqs=dict(categories=need_cat, new_uoms=need_uom, activate_uoms=need_act), keys=plan_key(out))
     json.dump(plan, open(os.path.join(run_dir, "plan.json"), "w"), indent=1, ensure_ascii=False)
@@ -291,6 +291,8 @@ def apply(args):
     sha = file_sha(args.file)
     if sha != plan["sha256"]:
         sys.exit(f"file hash {sha[:12]} does not match approved plan {plan['sha256'][:12]}; run dry-run again")
+    if plan.get("root_categ", ROOT_CATEG) != ROOT_CATEG:
+        sys.exit(f"plan used root category {plan['root_categ']!r} but SYNC_ROOT_CATEG is {ROOT_CATEG!r}")
     companies = plan["companies"]
     rows, _ = load_file(args.file)
     ro = Odoo()
