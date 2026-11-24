@@ -1,0 +1,24 @@
+{
+  "category": "Goods / Merops / RJ2",
+  "company_id": false,
+  "uom_overrides": {
+    "L00139-01": "ml",
+    "P00460-01": "ml",
+    "P04003-01": "m",
+    "P03800-01": "m"
+  },
+  "default_uom": "Units",
+  "legacy_products": {
+    "P03042-04": {"default_code": "12201047", "action": "adopt"},
+    "P03043-04": {"default_code": "12201048", "action": "adopt"},
+    "P03046-03": {"default_code": "12201049", "action": "hold",
+                  "reason": "cdrone name 'P03046 MEROPS FUESLAGE SKIN MAIN' (with laminate BoM) vs file 'Hatch, Fuselage, Main'; confirm with Cobra before adopting"}
+  },
+  "skip_categories": ["Document"],
+  "flags": {
+    "P03800-01": "Qty 32 in m per Chang (t108u), but file dimension is 20 x 4 x 75 mm: looks like 32 pcs x 75 mm = 2.4 m. Confirm 32 m vs 2.4 m with Cobra before any BoM.",
+    "L00139-01": "Qty 1650 ml; file note: 1 tube = 400 ml. Existing Materials item 24020071 is a 200 ml cartridge in Units (not convertible).",
+    "P00460-01": "Qty 20 ml; file note: 1 tube = 20 ml."
+  },
+  "properties": ["Weight (g)", "Dimensions (mm)", "Volume (mm3)", "Material", "Process", "Thickness (mm)", "Blank size (mm)", "Base PN", "Revision"]
+}
