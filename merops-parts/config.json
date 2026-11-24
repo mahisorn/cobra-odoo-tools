@@ -48,7 +48,7 @@
     "P03751-01": "Bracket, Optical Array"
   },
   "tracking": {
-    "_note": "Chang t112u: most parts serial; consumables lot. Proposal, not applied until approved. Non-Units products are forced to lot.",
+    "_note": "Chang t112u + approval 2026-11-24 18:05: most parts serial, consumables/hardware lot; high-qty serial parts switched to lot. Non-Units products forced to lot.",
     "default": "lot",
     "by_category": {
       "3D Printed Plastic": "serial",
@@ -66,8 +66,13 @@
     "overrides": {
       "P03760-01": "lot",
       "P03793-01": "lot",
-      "P03982-01": "lot"
+      "P03982-01": "lot",
+      "P04188-01": "lot",
+      "P03123-01": "lot",
+      "P03061-01": "lot",
+      "P03674-01": "lot",
+      "P04086-01": "lot"
     },
-    "apply": false
+    "apply": true
   }
 }

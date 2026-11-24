@@ -37,6 +37,16 @@ These settings survive a re-sync:
 - `uom_overrides`: units other than Units. P03800-01 foam strip is counted in pieces, so it stays on Units.
 - `legacy_products`: older Cobra-code products adopted under the Merops code (12201047/48/49 → P03042-04 / P03043-04 / P03046-03).
 
+## Tracking
+`config.json` → `tracking` sets each product's tracking:
+- **Category defaults:**
+  - Made parts are **serial**: 3D print, composite, metal, wood, fuel tank, airbag/parachute, Fuel-Misc.
+  - Off-the-shelf hardware, consumables, rope and foam are **lot**.
+- **Per-part overrides** take precedence. The 3 off-the-shelf fuel items and the high-quantity parts P04188-01, P03123-01, P03061-01, P03674-01 and P04086-01 are lot.
+- Anything not counted in Units (m, ml) is always lot.
+
+Applied on 2026-11-24 with Chang's approval: 130 serial, 69 lot.
+
 ## Inputs
 - **Current BOM file:** the source of truth for which parts exist and for names and materials.
   - The tool finds the sheet by its `Part No. latest` header.
