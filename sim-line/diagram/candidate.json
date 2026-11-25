@@ -1,0 +1,618 @@
+{
+ "schema_version": 1,
+ "diagram_type": "architecture",
+ "meta": {
+  "title": "Cobra SIM drone line on cdrone-test: stations, minutes per drone, setup, cost (ALL ASSUMPTIONS, please correct)",
+  "output": "cobra-sim-line.html",
+  "quality_profile": "showcase",
+  "locale": "en",
+  "legend": {
+   "entries": {
+    "external": {
+     "label": "OEM order / delivery"
+    },
+    "backend": {
+     "label": "Composite shop labour station (shared)"
+    },
+    "cloud": {
+     "label": "Cure / dry: calendar time, no labour, 24/7"
+    },
+    "messagebus": {
+     "label": "Sub-assembly cell (runs in parallel)"
+    },
+    "frontend": {
+     "label": "Assembly / calibration / packing"
+    },
+    "security": {
+     "label": "Flight test and QC"
+    }
+   }
+  }
+ },
+ "components": [
+  {
+   "id": "orders",
+   "type": "external",
+   "label": "OEM orders",
+   "sublabel": "~25 SO/week · 100/month",
+   "pos": [
+    40,
+    120
+   ],
+   "size": [
+    165,
+    64
+   ]
+  },
+  {
+   "id": "lay",
+   "type": "backend",
+   "label": "Layup ×7 cells",
+   "sublabel": "60·120·150·90 | 15+15 | ฿290",
+   "pos": [
+    40,
+    340
+   ],
+   "size": [
+    165,
+    64
+   ]
+  },
+  {
+   "id": "cur",
+   "type": "cloud",
+   "label": "Cure oven ×6 zones",
+   "sublabel": "240 min, 24/7 | ฿100",
+   "pos": [
+    230,
+    340
+   ],
+   "size": [
+    165,
+    64
+   ]
+  },
+  {
+   "id": "cnc",
+   "type": "backend",
+   "label": "CNC trim ×6",
+   "sublabel": "30·45·60·40 | 20+10 | ฿450",
+   "pos": [
+    420,
+    340
+   ],
+   "size": [
+    165,
+    64
+   ]
+  },
+  {
+   "id": "bnd",
+   "type": "backend",
+   "label": "Bonding ×5 fixtures",
+   "sublabel": "45·75·90·60 | 15+10 | ฿300",
+   "pos": [
+    610,
+    340
+   ],
+   "size": [
+    165,
+    64
+   ]
+  },
+  {
+   "id": "rkb",
+   "type": "cloud",
+   "label": "Rack: bond cure",
+   "sublabel": "120 min, 24/7 | ฿10",
+   "pos": [
+    800,
+    340
+   ],
+   "size": [
+    165,
+    64
+   ]
+  },
+  {
+   "id": "pnt",
+   "type": "backend",
+   "label": "Prep & paint ×5 booths",
+   "sublabel": "30·45·60·45 | 20+20 | ฿500",
+   "pos": [
+    990,
+    340
+   ],
+   "size": [
+    165,
+    64
+   ]
+  },
+  {
+   "id": "rkd",
+   "type": "cloud",
+   "label": "Rack: paint dry",
+   "sublabel": "90 min, 24/7 | ฿10",
+   "pos": [
+    1180,
+    340
+   ],
+   "size": [
+    165,
+    64
+   ]
+  },
+  {
+   "id": "fasA",
+   "type": "frontend",
+   "label": "Final assy ×2 cells",
+   "sublabel": "60 | 15+10 | ฿300",
+   "pos": [
+    1180,
+    120
+   ],
+   "size": [
+    165,
+    64
+   ]
+  },
+  {
+   "id": "calA",
+   "type": "frontend",
+   "label": "Calibration ×1 jig set",
+   "sublabel": "20 | 10+0 | ฿200",
+   "pos": [
+    990,
+    120
+   ],
+   "size": [
+    165,
+    64
+   ]
+  },
+  {
+   "id": "tstA",
+   "type": "security",
+   "label": "Flight test ×1 (2 bays)",
+   "sublabel": "30 | 15+10 | ฿600",
+   "pos": [
+    800,
+    120
+   ],
+   "size": [
+    165,
+    64
+   ]
+  },
+  {
+   "id": "qcA",
+   "type": "security",
+   "label": "Final QC ×1",
+   "sublabel": "15 | 5+5 | ฿200",
+   "pos": [
+    610,
+    120
+   ],
+   "size": [
+    165,
+    64
+   ]
+  },
+  {
+   "id": "pckA",
+   "type": "frontend",
+   "label": "Packing ×1",
+   "sublabel": "15 | 10+10 | ฿120",
+   "pos": [
+    420,
+    120
+   ],
+   "size": [
+    165,
+    64
+   ]
+  },
+  {
+   "id": "shipA",
+   "type": "external",
+   "label": "Delivered (Line A)",
+   "sublabel": "serial-tracked drones",
+   "pos": [
+    230,
+    120
+   ],
+   "size": [
+    165,
+    64
+   ]
+  },
+  {
+   "id": "harA",
+   "type": "messagebus",
+   "label": "Harness ×3",
+   "sublabel": "60 | 10+5 | ฿150",
+   "pos": [
+    1375,
+    62
+   ],
+   "size": [
+    165,
+    58
+   ]
+  },
+  {
+   "id": "prpA",
+   "type": "messagebus",
+   "label": "Propulsion ×2",
+   "sublabel": "30 | 10+5 | ฿150",
+   "pos": [
+    1375,
+    136
+   ],
+   "size": [
+    165,
+    58
+   ]
+  },
+  {
+   "id": "aviA",
+   "type": "messagebus",
+   "label": "Avionics ×3",
+   "sublabel": "45 | 10+5 | ฿200",
+   "pos": [
+    1375,
+    210
+   ],
+   "size": [
+    165,
+    58
+   ]
+  },
+  {
+   "id": "fasB",
+   "type": "frontend",
+   "label": "Final assy ×4 cells",
+   "sublabel": "90·120·75 | 15+10 | ฿300",
+   "pos": [
+    1180,
+    560
+   ],
+   "size": [
+    165,
+    64
+   ]
+  },
+  {
+   "id": "calB",
+   "type": "frontend",
+   "label": "Calibration ×1 jig set",
+   "sublabel": "30·30·25 | 10+0 | ฿200",
+   "pos": [
+    990,
+    560
+   ],
+   "size": [
+    165,
+    64
+   ]
+  },
+  {
+   "id": "tstB",
+   "type": "security",
+   "label": "Flight test ×3 (2 bays)",
+   "sublabel": "45·60·30 | 15+10 | ฿600",
+   "pos": [
+    800,
+    560
+   ],
+   "size": [
+    165,
+    64
+   ]
+  },
+  {
+   "id": "qcB",
+   "type": "security",
+   "label": "Final QC ×2",
+   "sublabel": "20·25·20 | 5+5 | ฿200",
+   "pos": [
+    610,
+    560
+   ],
+   "size": [
+    165,
+    64
+   ]
+  },
+  {
+   "id": "pckB",
+   "type": "frontend",
+   "label": "Packing ×3",
+   "sublabel": "25·30·20 | 10+10 | ฿120",
+   "pos": [
+    420,
+    560
+   ],
+   "size": [
+    165,
+    64
+   ]
+  },
+  {
+   "id": "shipB",
+   "type": "external",
+   "label": "Delivered (Line B)",
+   "sublabel": "serial-tracked drones",
+   "pos": [
+    230,
+    560
+   ],
+   "size": [
+    165,
+    64
+   ]
+  },
+  {
+   "id": "harB",
+   "type": "messagebus",
+   "label": "Harness ×6",
+   "sublabel": "90·90·45 | 10+5 | ฿150",
+   "pos": [
+    1375,
+    502
+   ],
+   "size": [
+    165,
+    58
+   ]
+  },
+  {
+   "id": "prpB",
+   "type": "messagebus",
+   "label": "Propulsion ×4",
+   "sublabel": "60·45·30 | 10+5 | ฿150",
+   "pos": [
+    1375,
+    576
+   ],
+   "size": [
+    165,
+    58
+   ]
+  },
+  {
+   "id": "aviB",
+   "type": "messagebus",
+   "label": "Avionics ×5",
+   "sublabel": "60·75·60 | 10+5 | ฿200",
+   "pos": [
+    1375,
+    650
+   ],
+   "size": [
+    165,
+    58
+   ]
+  }
+ ],
+ "boundaries": [
+  {
+   "kind": "region",
+   "label": "Shared composite shop (all families)",
+   "wraps": [
+    "lay",
+    "cur",
+    "cnc",
+    "bnd",
+    "rkb",
+    "pnt",
+    "rkd"
+   ]
+  },
+  {
+   "kind": "region",
+   "label": "Line A: quad QX4 (STD, THM, MAP)",
+   "wraps": [
+    "fasA",
+    "calA",
+    "tstA",
+    "qcA",
+    "pckA",
+    "harA",
+    "prpA",
+    "aviA"
+   ]
+  },
+  {
+   "kind": "region",
+   "label": "Line B: hexa HX6, VTOL VT2, interceptor INT",
+   "wraps": [
+    "fasB",
+    "calB",
+    "tstB",
+    "qcB",
+    "pckB",
+    "harB",
+    "prpB",
+    "aviB"
+   ]
+  }
+ ],
+ "connections": [
+  {
+   "id": "orders-lay",
+   "from": "orders",
+   "to": "lay",
+   "variant": "emphasis"
+  },
+  {
+   "id": "lay-cur",
+   "from": "lay",
+   "to": "cur",
+   "variant": "emphasis"
+  },
+  {
+   "id": "cur-cnc",
+   "from": "cur",
+   "to": "cnc",
+   "variant": "emphasis"
+  },
+  {
+   "id": "cnc-bnd",
+   "from": "cnc",
+   "to": "bnd",
+   "variant": "emphasis"
+  },
+  {
+   "id": "bnd-rkb",
+   "from": "bnd",
+   "to": "rkb",
+   "variant": "emphasis"
+  },
+  {
+   "id": "rkb-pnt",
+   "from": "rkb",
+   "to": "pnt",
+   "variant": "emphasis"
+  },
+  {
+   "id": "pnt-rkd",
+   "from": "pnt",
+   "to": "rkd",
+   "variant": "emphasis"
+  },
+  {
+   "id": "fasA-calA",
+   "from": "fasA",
+   "to": "calA"
+  },
+  {
+   "id": "calA-tstA",
+   "from": "calA",
+   "to": "tstA"
+  },
+  {
+   "id": "tstA-qcA",
+   "from": "tstA",
+   "to": "qcA"
+  },
+  {
+   "id": "qcA-pckA",
+   "from": "qcA",
+   "to": "pckA"
+  },
+  {
+   "id": "pckA-shipA",
+   "from": "pckA",
+   "to": "shipA"
+  },
+  {
+   "id": "harA-fasA",
+   "from": "harA",
+   "to": "fasA"
+  },
+  {
+   "id": "prpA-fasA",
+   "from": "prpA",
+   "to": "fasA"
+  },
+  {
+   "id": "aviA-fasA",
+   "from": "aviA",
+   "to": "fasA"
+  },
+  {
+   "id": "fasB-calB",
+   "from": "fasB",
+   "to": "calB"
+  },
+  {
+   "id": "calB-tstB",
+   "from": "calB",
+   "to": "tstB"
+  },
+  {
+   "id": "tstB-qcB",
+   "from": "tstB",
+   "to": "qcB"
+  },
+  {
+   "id": "qcB-pckB",
+   "from": "qcB",
+   "to": "pckB"
+  },
+  {
+   "id": "pckB-shipB",
+   "from": "pckB",
+   "to": "shipB"
+  },
+  {
+   "id": "harB-fasB",
+   "from": "harB",
+   "to": "fasB"
+  },
+  {
+   "id": "prpB-fasB",
+   "from": "prpB",
+   "to": "fasB"
+  },
+  {
+   "id": "aviB-fasB",
+   "from": "aviB",
+   "to": "fasB"
+  },
+  {
+   "id": "rkd-fasA",
+   "from": "rkd",
+   "to": "fasA",
+   "label": "QX4 airframe",
+   "variant": "emphasis"
+  },
+  {
+   "id": "rkd-fasB",
+   "from": "rkd",
+   "to": "fasB",
+   "label": "HX6 / VT2 / INT airframe",
+   "variant": "emphasis"
+  }
+ ],
+ "cards": [
+  {
+   "dot": "amber",
+   "title": "How to read (ASSUMPTIONS)",
+   "items": [
+    "Sub-label = minutes per drone | setup+cleanup min per work order | ฿ per station-hour",
+    "Minutes: composite QX4·HX6·VT2·INT; Line A QX4; Line B HX6·VT2·INT",
+    "×n = parallel stations (alternative work centres in Odoo)",
+    "Oven: 6 zones × 4 sets; rack: 4 zones × 10, used for bond cure and paint dry",
+    "All times and costs are assumptions from the RC-9 plan, not measured"
+   ]
+  },
+  {
+   "dot": "cyan",
+   "title": "Shift and batches",
+   "items": [
+    "1 shift Mon–Fri 08:00–16:00, no OT; cure and dry run 24/7",
+    "Batch rule: QX4 ≤4, HX6 and INT ≤2, VT2 1 per MO",
+    "65 labour stations + 6 oven zones + 4 rack zones"
+   ]
+  },
+  {
+   "dot": "rose",
+   "title": "Week-1 simulation (30 Nov–4 Dec)",
+   "items": [
+    "25 orders, 223 drones, 109 drone MOs, 654 MOs, 1,635 work orders",
+    "Lead release→done: min 50 h, median 149 h (101 h excl. weekend)",
+    "Busiest: CAL-B 131%, FAS-B 108%, TST-A 105%, Layup 104%, Bonding 100%"
+   ]
+  },
+  {
+   "dot": "emerald",
+   "title": "Materials",
+   "items": [
+    "Raw materials are real SAP codes (carbon, glass, resin, hardener, Plexus, paint, packing)",
+    "Electronics are SIM placeholders (no SAP codes)"
+   ]
+  }
+ ]
+}
